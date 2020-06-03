@@ -14,8 +14,7 @@ public interface ConfigurationRepository extends JpaRepository<Configuration, Lo
 
     List<Configuration> findAllByClientVersionId(long clientId);
 
-    // select configuration which is newer than given acquired configuration (given Etag)
     @Query("select conf from Configuration conf where conf.creationDate > :creation_date and conf.clientVersion.id = :client_id")
-    List<Configuration> findAllByClientVersionIdAfterGivenAcquisition(@Param("client_id") long clientId,
-                                                                      @Param("creation_date") Timestamp lastAcquiredConfigurationETag);
+    List<Configuration> findAllByClientVersionIdAfterGivenCreationDate(@Param("client_id") long clientId,
+                                                                       @Param("creation_date") Timestamp creationDate);
 }
