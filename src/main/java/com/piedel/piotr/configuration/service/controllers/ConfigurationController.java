@@ -2,16 +2,17 @@ package com.piedel.piotr.configuration.service.controllers;
 
 import com.piedel.piotr.configuration.service.dto.ConfigurationDto;
 import com.piedel.piotr.configuration.service.dto.ConfigurationDtoMapper;
-import com.piedel.piotr.configuration.service.dto.KeyValueDto;
-import com.piedel.piotr.configuration.service.dto.KeyValueDtoMapper;
+import com.piedel.piotr.configuration.service.dto.ConfigurationToJsonObjectsMapper;
 import com.piedel.piotr.configuration.service.exceptions.IncorrectEtagException;
 import com.piedel.piotr.configuration.service.model.ClientVersion;
 import com.piedel.piotr.configuration.service.model.Configuration;
 import com.piedel.piotr.configuration.service.services.ClientWithVersionService;
 import com.piedel.piotr.configuration.service.services.ConfigurationService;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-//import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+//import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/config")
 public final class ConfigurationController {
@@ -29,25 +32,25 @@ public final class ConfigurationController {
     private final ConfigurationService configurationService;
     private final ClientWithVersionService clientWithVersionService;
     private final ConfigurationDtoMapper configurationDtoMapper;
-    private final KeyValueDtoMapper keyValueDtoMapper;
+    private final ConfigurationToJsonObjectsMapper configurationToJsonObjectsMapper;
 
     public ConfigurationController(ConfigurationService configurationService,
                                    ClientWithVersionService clientWithVersionService,
                                    ConfigurationDtoMapper configurationDtoMapper,
-                                   KeyValueDtoMapper keyValueDtoMapper) {
+                                   ConfigurationToJsonObjectsMapper configurationToJsonObjectsMapper) {
 
         this.configurationService = configurationService;
         this.clientWithVersionService = clientWithVersionService;
         this.configurationDtoMapper = configurationDtoMapper;
-        this.keyValueDtoMapper = keyValueDtoMapper;
+        this.configurationToJsonObjectsMapper = configurationToJsonObjectsMapper;
     }
 
-//    @PreAuthorize(value = "hasRole('user') or hasRole('admin')")
+    //    @PreAuthorize(value = "hasRole('user') or hasRole('admin')")
     @GetMapping("/{client}/{version}")
-    public ResponseEntity<List<KeyValueDto>> getConfigurations(@PathVariable String client,
-                                                               @PathVariable String version,
-                                                               @RequestHeader(value = "If-None-Match",
-                                                                       required = false) String lastAcquiredConfigurationETag) {
+    public ResponseEntity<String> getConfigurations(@PathVariable String client,
+                                                    @PathVariable String version,
+                                                    @RequestHeader(value = HttpHeaders.IF_NONE_MATCH,
+                                                            required = false) String lastAcquiredConfigurationETag) throws JSONException {
 
         List<Configuration> changedConfigurations;
 
@@ -55,7 +58,7 @@ public final class ConfigurationController {
             try {
                 changedConfigurations = findConfigurationsForGivenClientVersionAndEtag(client, version, lastAcquiredConfigurationETag);
             } catch (IncorrectEtagException e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
         } else {
             changedConfigurations = findAllConfigurations(client, version);
@@ -70,7 +73,7 @@ public final class ConfigurationController {
     private List<Configuration> findConfigurationsForGivenClientVersionAndEtag(String client, String version, String lastAcquiredConfigurationETag)
             throws IncorrectEtagException {
         return configurationService
-                .findAllConfigurationsSinceGivenAcquisition(client, version, lastAcquiredConfigurationETag);
+                .findAllChangedConfigurationsSinceGivenAcquisition(client, version, lastAcquiredConfigurationETag);
     }
 
     private List<Configuration> findAllConfigurations(String client, String version) {
@@ -83,18 +86,18 @@ public final class ConfigurationController {
                 .get(changedConfigurations.size() - 1);
     }
 
-    private ResponseEntity<List<KeyValueDto>> mapConfigurationsAsResponseEntityConfigurationDto(List<Configuration> changedConfigurations) {
-        List<KeyValueDto> changedConfigurationsDto = keyValueDtoMapper
-                .configurationAsKeyValueDto(changedConfigurations);
+    private ResponseEntity<String> mapConfigurationsAsResponseEntityConfigurationDto(List<Configuration> changedConfigurations) throws JSONException {
+
         Configuration lastAcquiredConfiguration = getLastAcquiredConfiguration(changedConfigurations);
 
+        JSONObject response = configurationToJsonObjectsMapper.asKeyValuesPropertiesJsonObject(changedConfigurations);
         return ResponseEntity
                 .ok()
                 .eTag(Long.toString(lastAcquiredConfiguration.getCreationDateTimeAsTimestamp()))
-                .body(changedConfigurationsDto);
+                .body(response.toString());
     }
 
-//    @PreAuthorize(value = "hasRole('admin')")
+    //    @PreAuthorize(value = "hasRole('admin')")
     @PostMapping("")
     public ResponseEntity<Object> addConfiguration(@RequestBody ConfigurationDto configurationDto) {
         ClientVersion clientVersion = clientWithVersionService

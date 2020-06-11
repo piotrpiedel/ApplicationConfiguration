@@ -36,9 +36,9 @@ public class ConfigurationService {
         return Collections.emptyList();
     }
 
-    public List<Configuration> findAllConfigurationsSinceGivenAcquisition(String client,
-                                                                          String version,
-                                                                          String lastAcquiredConfigurationETag) throws IncorrectEtagException {
+    public List<Configuration> findAllChangedConfigurationsSinceGivenAcquisition(String client,
+                                                                                 String version,
+                                                                                 String lastAcquiredConfigurationETag) throws IncorrectEtagException {
 
         Optional<ClientVersion> clientWithVersion = clientWithVersionService.findClientWithVersion(client, version);
         if (clientWithVersion.isPresent()) {
