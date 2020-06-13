@@ -2,6 +2,7 @@ package com.piedel.piotr.configuration.service.controllers;
 
 import com.piedel.piotr.configuration.service.model.ClientVersion;
 import com.piedel.piotr.configuration.service.model.Configuration;
+import com.piedel.piotr.configuration.service.services.ClientWithVersionService;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -9,21 +10,34 @@ import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
+@SuppressWarnings("ALL")
 public class ConfigurationsProvider {
 
     static List<Configuration> getTwoConfigurations() {
         List<Configuration> configurations = new ArrayList<>();
-        configurations.add(new Configuration(0L,
-                "ads_endpoint",
-                "/devads", new Timestamp(1000L),
-                mock(ClientVersion.class)
-        ));
-        configurations.add(new Configuration(1L,
-                "background_color",
-                "#001", new Timestamp(2000L),
-                mock(ClientVersion.class)
-        ));
+        addConfiguration(configurations, 0L, "ads_endpoint", "/devads", 1000L);
+        addConfiguration(configurations, 1L, "background_color", "#001", 2000L);
         return configurations;
     }
 
+    static List<Configuration> getFiveConfigurations_TwoAdsEndpoint_TwoBackgroundColors_OneFontColor() {
+        List<Configuration> configurations = new ArrayList<>();
+        addConfiguration(configurations, 0L, "ads_endpoint", "/devads", 1000L);
+        addConfiguration(configurations, 1L, "background_color", "#001", 3000L);
+        addConfiguration(configurations, 3L, "background_color", "#005", 6000L);
+        addConfiguration(configurations, 4L, "ads_endpoint", "/devads_updated", 11000L);
+        addConfiguration(configurations, 5L, "font_color", "#324", 13000L);
+        return configurations;
+    }
+
+    private static void addConfiguration(List<Configuration> configurations, long configId, String configKey, String configValue, long creationDate) {
+        configurations.add(Configuration
+                .builder()
+                .id(configId)
+                .key(configKey)
+                .value(configValue)
+                .creationDate(new Timestamp(creationDate))
+                .clientVersion(mock(ClientVersion.class))
+                .build());
+    }
 }

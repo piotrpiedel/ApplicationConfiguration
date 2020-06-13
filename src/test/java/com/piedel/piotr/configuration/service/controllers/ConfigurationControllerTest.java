@@ -79,10 +79,7 @@ class ConfigurationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON));
 
         //then
-        Configuration lastChangedConfiguration = getLastChangedConfigurationFromList(configurations);
-
-        // ETag is double quoted string - treat configuration creation date time as etag
-        String value = '"' + String.valueOf(lastChangedConfiguration.getCreationDateTimeAsTimestamp()) + '"';
+        String value = getLastChangedConfigurationEtagValue(configurations);
 
         resultActions
                 .andExpect(status().isOk())
@@ -91,17 +88,13 @@ class ConfigurationControllerTest {
                 .andExpect(jsonPath("$.background_color").value("#001"));
     }
 
-    private Configuration getLastChangedConfigurationFromList(List<Configuration> configurations) {
-        return configurations.get(configurations.size() - 1);
-    }
-
     @Test
     void getConfigurations_WhenClientNotFound_ReturnEmptyList() throws Exception {
         //given
         when(configurationService
                 .findAllClientConfigurations(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(Collections.emptyList());
-        String getConfigurationEndpoint = createGetConfigurationEndpoint("windows", "10");
+        String getConfigurationEndpoint = createGetConfigurationEndpoint("ios", "289"); // random client, version
 
         //when
         ResultActions resultActions = mockMvc
@@ -114,7 +107,7 @@ class ConfigurationControllerTest {
     }
 
     @Test
-    void getConfigurations_WhenIncorrectEtagFormat_ThrowIncorrectEtagException() throws Exception, IncorrectEtagException {
+    void getConfigurations_WhenIncorrectEtagFormat_ThrowIncorrectEtagException() throws Exception {
         //given
         String getConfigurationEndpoint = createGetConfigurationEndpoint("windows", "10");
         when(configurationService
@@ -132,23 +125,53 @@ class ConfigurationControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    //TODO
+
+    // TODO: żeby to przetestować trzeba to zrobić jakoś inaczej
+    // teraz zwraca mi po prostu 5 konfiguracji, pomime podanego if-none-match
+    // poniewaz tak zamokowałem configurationservice to tak mi to zwroci;
+    // zeby to prawdziwie przetestowac to trzeba przetestowac service z prawdziwa
+    // baza jak to wlasciwie dziala
+    // tzn musi wstac baza w h2 oraz musi sobie selecta utworzyc ze after given etag select coingurations
     @Test
-    void getConfigurations_WhenIfNoneMatchHeaderEtagIsGiven_ReturnChangedConfigurationsAfterGivenEtag() throws Exception {
+    void getConfigurations_WhenIfNoneMatchHeaderEtagIsGiven_ReturnLatestUpdatedConfigurationDistinctByKey() throws Exception {
         //given
-        when(configurationService
-                .findAllClientConfigurations(Mockito.anyString(), Mockito.anyString()))
-                .thenReturn(Collections.emptyList());
         String getConfigurationEndpoint = createGetConfigurationEndpoint("windows", "10");
+
+        List<Configuration> configurations = ConfigurationsProvider.getFiveConfigurations_TwoAdsEndpoint_TwoBackgroundColors_OneFontColor();
+        when(configurationService
+                .findAllChangedConfigurationsSinceGivenAcquisition(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(configurations);
+
+        long firstConfigurationEtagFromList = configurations
+                .get(0)
+                .getCreationDateTimeAsTimestamp();
 
         //when
         ResultActions resultActions = mockMvc
                 .perform(get(getConfigurationEndpoint)
-                        .contentType(MediaType.APPLICATION_JSON));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.IF_NONE_MATCH, firstConfigurationEtagFromList));
 
         //then
+        String value = getLastChangedConfigurationEtagValue(configurations);
+
         resultActions
-                .andExpect(status().isNotModified());
+                .andExpect(status().isOk())
+                .andExpect(header().string("ETag", value))
+                .andExpect(jsonPath("$.ads_endpoint").value("/devads_updated"))
+                .andExpect(jsonPath("$.background_color").value("#005"))
+                .andExpect(jsonPath("$.font_color").value("#324"));
+    }
+
+
+    private String getLastChangedConfigurationEtagValue(List<Configuration> configurations) {
+        Configuration lastChangedConfiguration = getLastChangedConfigurationFromList(configurations);
+        // ETag is double quoted string - treat configuration creation date time as etag
+        return '"' + String.valueOf(lastChangedConfiguration.getCreationDateTimeAsTimestamp()) + '"';
+    }
+
+    private Configuration getLastChangedConfigurationFromList(List<Configuration> configurations) {
+        return configurations.get(configurations.size() - 1);
     }
 
     @Test
