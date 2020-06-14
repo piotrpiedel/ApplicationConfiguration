@@ -47,10 +47,11 @@ class ConfigurationControllerTest {
     @Test
     void getConfigurations_WhenNoConfigurationForClient_ReturnNotModified() throws Exception {
         //given
+        String getConfigurationEndpoint = createGetConfigurationEndpoint("android", "231");
+
         when(configurationService
                 .findAllClientConfigurations(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(Collections.emptyList());
-        String getConfigurationEndpoint = createGetConfigurationEndpoint("android", "231");
 
         //when
         ResultActions resultActions = mockMvc
@@ -63,15 +64,14 @@ class ConfigurationControllerTest {
     }
 
     @Test
-    void getConfigurations_WhenIfNoneMatchHeaderEmpty_ReturnAllConfigurationsWithEtagFromLastConfig() throws Exception {
+    void getConfigurations_WhenIfNoneMatchHeaderEmpty_ReturnAllConfigurationsWithEtagFromLastConfig()
+            throws Exception {
         //given
+        String configurationsGetEndpoint = createGetConfigurationEndpoint("ios", "232");
         List<Configuration> configurations = getTwoConfigurations();
-
         when(configurationService
                 .findAllClientConfigurations(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(configurations);
-
-        String configurationsGetEndpoint = createGetConfigurationEndpoint("ios", "232");
 
         //when
         ResultActions resultActions = mockMvc
@@ -91,10 +91,10 @@ class ConfigurationControllerTest {
     @Test
     void getConfigurations_WhenClientNotFound_ReturnEmptyList() throws Exception {
         //given
+        String getConfigurationEndpoint = createGetConfigurationEndpoint("ios", "289");
         when(configurationService
                 .findAllClientConfigurations(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(Collections.emptyList());
-        String getConfigurationEndpoint = createGetConfigurationEndpoint("ios", "289"); // random client, version
 
         //when
         ResultActions resultActions = mockMvc
@@ -111,7 +111,8 @@ class ConfigurationControllerTest {
         //given
         String getConfigurationEndpoint = createGetConfigurationEndpoint("windows", "10");
         when(configurationService
-                .findAllChangedConfigurationsSinceGivenAcquisition(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
+                .findAllChangedConfigurationsSinceGivenAcquisition(
+                        Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
                 .thenThrow(new IncorrectEtagException("Test should fail"));
         String incorrectETag = "NotANumberEtag";
 
@@ -125,7 +126,6 @@ class ConfigurationControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-
     // TODO: żeby to przetestować trzeba to zrobić jakoś inaczej
     // teraz zwraca mi po prostu 5 konfiguracji, pomime podanego if-none-match
     // poniewaz tak zamokowałem configurationservice to tak mi to zwroci;
@@ -133,13 +133,16 @@ class ConfigurationControllerTest {
     // baza jak to wlasciwie dziala
     // tzn musi wstac baza w h2 oraz musi sobie selecta utworzyc ze after given etag select coingurations
     @Test
-    void getConfigurations_WhenIfNoneMatchHeaderEtagIsGiven_ReturnLatestUpdatedConfigurationDistinctByKey() throws Exception {
+    void getConfigurations_WhenIfNoneMatchHeaderEtagIsGiven_ReturnLatestUpdatedConfigurationDistinctByKey()
+            throws Exception {
         //given
         String getConfigurationEndpoint = createGetConfigurationEndpoint("windows", "10");
+        List<Configuration> configurations = ConfigurationsProvider
+                .getFiveConfigurations_TwoAdsEndpoint_TwoBackgroundColors_OneFontColor();
 
-        List<Configuration> configurations = ConfigurationsProvider.getFiveConfigurations_TwoAdsEndpoint_TwoBackgroundColors_OneFontColor();
         when(configurationService
-                .findAllChangedConfigurationsSinceGivenAcquisition(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
+                .findAllChangedConfigurationsSinceGivenAcquisition(
+                        Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(configurations);
 
         long firstConfigurationEtagFromList = configurations
@@ -163,11 +166,12 @@ class ConfigurationControllerTest {
                 .andExpect(jsonPath("$.font_color").value("#324"));
     }
 
-
     private String getLastChangedConfigurationEtagValue(List<Configuration> configurations) {
-        Configuration lastChangedConfiguration = getLastChangedConfigurationFromList(configurations);
+        Configuration lastChangedConfiguration = getLastChangedConfigurationFromList(
+                configurations);
         // ETag is double quoted string - treat configuration creation date time as etag
-        return '"' + String.valueOf(lastChangedConfiguration.getCreationDateTimeAsTimestamp()) + '"';
+        return '"' + String.valueOf(lastChangedConfiguration.getCreationDateTimeAsTimestamp())
+                + '"';
     }
 
     private Configuration getLastChangedConfigurationFromList(List<Configuration> configurations) {
@@ -177,7 +181,6 @@ class ConfigurationControllerTest {
     @Test
     void addConfiguration() {
     }
-
 
     @TestConfiguration
     static class ControllerTestConfiguration {

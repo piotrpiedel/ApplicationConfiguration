@@ -7,11 +7,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigurationDtoMapper {
 
-    public Configuration convertToEntity(ConfigurationDto configurationDto, ClientVersion clientVersion) {
+    public Configuration convertToEntity(
+            ConfigurationDto configurationDto,
+            ClientVersion clientVersion) {
         return createConfigurationToSave(configurationDto, clientVersion);
     }
 
-    private Configuration createConfigurationToSave(ConfigurationDto configurationDto, ClientVersion clientVersion) {
+    private Configuration createConfigurationToSave(
+            ConfigurationDto configurationDto,
+            ClientVersion clientVersion) {
         return Configuration
                 .builder()
                 .key(configurationDto.getKey())

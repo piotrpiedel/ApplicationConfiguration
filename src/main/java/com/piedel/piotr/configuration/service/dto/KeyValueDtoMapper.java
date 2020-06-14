@@ -23,6 +23,4 @@ public class KeyValueDtoMapper {
                 .map(this::configurationAsKeyValueDto)
                 .collect(Collectors.toList());
     }
-
-
 }

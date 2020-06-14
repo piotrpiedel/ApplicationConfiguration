@@ -15,6 +15,7 @@ public interface ConfigurationRepository extends JpaRepository<Configuration, Lo
     List<Configuration> findAllByClientVersionId(long clientId);
 
     @Query("select conf from Configuration conf where conf.creationDate > :creation_date and conf.clientVersion.id = :client_id")
-    List<Configuration> findAllByClientVersionIdAfterGivenCreationDate(@Param("client_id") long clientId,
-                                                                       @Param("creation_date") Timestamp creationDate);
+    List<Configuration> findAllByClientVersionIdAfterGivenCreationDate(
+            @Param("client_id") long clientId,
+            @Param("creation_date") Timestamp creationDate);
 }

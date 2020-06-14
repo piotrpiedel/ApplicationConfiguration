@@ -16,11 +16,10 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import java.sql.Timestamp;
 
-
 @Entity
 @Setter
 @Getter
-@AllArgsConstructor()
+@AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
 @Builder
@@ -37,7 +36,7 @@ public class Configuration {
     @CreationTimestamp
     private Timestamp creationDate;
 
-    @ManyToOne()
+    @ManyToOne
     private ClientVersion clientVersion;
 
     public String getClient() {

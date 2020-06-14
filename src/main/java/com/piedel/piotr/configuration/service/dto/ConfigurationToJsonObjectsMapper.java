@@ -10,7 +10,8 @@ import java.util.List;
 @Component
 public class ConfigurationToJsonObjectsMapper {
 
-    public JSONObject asKeyValuesPropertiesJsonObject(List<Configuration> configurations) throws JSONException {
+    public JSONObject asKeyValuesPropertiesJsonObject(List<Configuration> configurations)
+            throws JSONException {
         JSONObject jsonObject = new JSONObject();
         for (Configuration configuration : configurations) {
             jsonObject.put(configuration.getKey(), configuration.getValue());

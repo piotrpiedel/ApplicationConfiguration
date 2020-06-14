@@ -9,7 +9,6 @@ import java.util.Optional;
 @Service
 public class ClientWithVersionService {
 
-
     private final ClientWithVersionRepository clientWithVersionRepository;
 
     public ClientWithVersionService(ClientWithVersionRepository clientWithVersionRepository) {

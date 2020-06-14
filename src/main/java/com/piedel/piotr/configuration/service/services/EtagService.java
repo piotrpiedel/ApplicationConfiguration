@@ -9,13 +9,12 @@ public class EtagService {
 
     private final ConfigurationRepository configurationRepository;
 
-
     public EtagService(ConfigurationRepository configurationRepository) {
         this.configurationRepository = configurationRepository;
     }
 
     public Etag generateEtag() {
-        return new Etag(2l, "W/2");
+        return new Etag(2L, "W/2");
     }
 
 }

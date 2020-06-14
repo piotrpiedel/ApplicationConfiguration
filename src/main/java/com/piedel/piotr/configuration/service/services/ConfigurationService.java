@@ -15,11 +15,12 @@ import java.util.Optional;
 @Service
 public class ConfigurationService {
 
-
     private final ConfigurationRepository configurationRepository;
     private final ClientWithVersionService clientWithVersionService;
 
-    public ConfigurationService(ConfigurationRepository configurationRepository, ClientWithVersionService clientWithVersionService) {
+    public ConfigurationService(
+            ConfigurationRepository configurationRepository,
+            ClientWithVersionService clientWithVersionService) {
         this.configurationRepository = configurationRepository;
         this.clientWithVersionService = clientWithVersionService;
     }
@@ -29,22 +30,27 @@ public class ConfigurationService {
     }
 
     public List<Configuration> findAllClientConfigurations(String client, String version) {
-        Optional<ClientVersion> clientFromDB = clientWithVersionService.findClientWithVersion(client, version);
+        Optional<ClientVersion> clientFromDB = clientWithVersionService
+                .findClientWithVersion(client, version);
         if (clientFromDB.isPresent()) {
             return configurationRepository.findAllByClientVersionId(clientFromDB.get().getId());
         }
         return Collections.emptyList();
     }
 
-    public List<Configuration> findAllChangedConfigurationsSinceGivenAcquisition(String client,
-                                                                                 String version,
-                                                                                 String lastAcquiredConfigurationETag) throws IncorrectEtagException {
+    public List<Configuration> findAllChangedConfigurationsSinceGivenAcquisition(
+            String client,
+            String version,
+            String lastAcquiredConfigurationETag) throws IncorrectEtagException {
 
-        Optional<ClientVersion> clientWithVersion = clientWithVersionService.findClientWithVersion(client, version);
+        Optional<ClientVersion> clientWithVersion = clientWithVersionService
+                .findClientWithVersion(client, version);
         if (clientWithVersion.isPresent()) {
             Timestamp timestamp = new Timestamp(getDate(lastAcquiredConfigurationETag).getTime());
             return configurationRepository
-                    .findAllByClientVersionIdAfterGivenCreationDate(clientWithVersion.get().getId(), timestamp);
+                    .findAllByClientVersionIdAfterGivenCreationDate(
+                            clientWithVersion.get().getId(),
+                            timestamp);
         }
         return Collections.emptyList();
     }

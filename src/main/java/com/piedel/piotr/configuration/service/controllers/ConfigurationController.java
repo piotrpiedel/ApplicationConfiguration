@@ -34,10 +34,11 @@ public final class ConfigurationController {
     private final ConfigurationDtoMapper configurationDtoMapper;
     private final ConfigurationToJsonObjectsMapper configurationToJsonObjectsMapper;
 
-    public ConfigurationController(ConfigurationService configurationService,
-                                   ClientWithVersionService clientWithVersionService,
-                                   ConfigurationDtoMapper configurationDtoMapper,
-                                   ConfigurationToJsonObjectsMapper configurationToJsonObjectsMapper) {
+    public ConfigurationController(
+            ConfigurationService configurationService,
+            ClientWithVersionService clientWithVersionService,
+            ConfigurationDtoMapper configurationDtoMapper,
+            ConfigurationToJsonObjectsMapper configurationToJsonObjectsMapper) {
 
         this.configurationService = configurationService;
         this.clientWithVersionService = clientWithVersionService;
@@ -47,16 +48,18 @@ public final class ConfigurationController {
 
     //    @PreAuthorize(value = "hasRole('user') or hasRole('admin')")
     @GetMapping("/{client}/{version}")
-    public ResponseEntity<String> getConfigurations(@PathVariable String client,
-                                                    @PathVariable String version,
-                                                    @RequestHeader(value = HttpHeaders.IF_NONE_MATCH,
-                                                            required = false) String lastAcquiredConfigurationETag) throws JSONException {
+    public ResponseEntity<String> getConfigurations(
+            @PathVariable String client,
+            @PathVariable String version,
+            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH,
+                    required = false) String lastAcquiredConfigurationETag) throws JSONException {
 
         List<Configuration> changedConfigurations;
 
         if (lastAcquiredConfigurationETag != null) {
             try {
-                changedConfigurations = findConfigurationsForGivenClientVersionAndEtag(client, version, lastAcquiredConfigurationETag);
+                changedConfigurations = findConfigurationsForGivenClientVersionAndEtag(client,
+                        version, lastAcquiredConfigurationETag);
             } catch (IncorrectEtagException e) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
@@ -70,10 +73,13 @@ public final class ConfigurationController {
         return mapConfigurationsAsResponseEntityConfigurationDto(changedConfigurations);
     }
 
-    private List<Configuration> findConfigurationsForGivenClientVersionAndEtag(String client, String version, String lastAcquiredConfigurationETag)
+    private List<Configuration> findConfigurationsForGivenClientVersionAndEtag(
+            String client,
+            String version, String lastAcquiredConfigurationETag)
             throws IncorrectEtagException {
         return configurationService
-                .findAllChangedConfigurationsSinceGivenAcquisition(client, version, lastAcquiredConfigurationETag);
+                .findAllChangedConfigurationsSinceGivenAcquisition(client, version,
+                        lastAcquiredConfigurationETag);
     }
 
     private List<Configuration> findAllConfigurations(String client, String version) {
@@ -86,11 +92,14 @@ public final class ConfigurationController {
                 .get(changedConfigurations.size() - 1);
     }
 
-    private ResponseEntity<String> mapConfigurationsAsResponseEntityConfigurationDto(List<Configuration> changedConfigurations) throws JSONException {
+    private ResponseEntity<String> mapConfigurationsAsResponseEntityConfigurationDto(
+            List<Configuration> changedConfigurations) throws JSONException {
 
-        Configuration lastAcquiredConfiguration = getLastAcquiredConfiguration(changedConfigurations);
+        Configuration lastAcquiredConfiguration = getLastAcquiredConfiguration(
+                changedConfigurations);
 
-        JSONObject response = configurationToJsonObjectsMapper.asKeyValuesPropertiesJsonObject(changedConfigurations);
+        JSONObject response = configurationToJsonObjectsMapper
+                .asKeyValuesPropertiesJsonObject(changedConfigurations);
         return ResponseEntity
                 .ok()
                 .eTag(Long.toString(lastAcquiredConfiguration.getCreationDateTimeAsTimestamp()))

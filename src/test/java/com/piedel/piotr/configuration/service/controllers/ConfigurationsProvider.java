@@ -2,7 +2,6 @@ package com.piedel.piotr.configuration.service.controllers;
 
 import com.piedel.piotr.configuration.service.model.ClientVersion;
 import com.piedel.piotr.configuration.service.model.Configuration;
-import com.piedel.piotr.configuration.service.services.ClientWithVersionService;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -30,7 +29,11 @@ public class ConfigurationsProvider {
         return configurations;
     }
 
-    private static void addConfiguration(List<Configuration> configurations, long configId, String configKey, String configValue, long creationDate) {
+    private static void addConfiguration(
+            List<Configuration> configurations,
+            long configId,
+            String configKey, String configValue,
+            long creationDate) {
         configurations.add(Configuration
                 .builder()
                 .id(configId)
