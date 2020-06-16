@@ -58,7 +58,7 @@ public final class ConfigurationController {
 
         if (lastAcquiredConfigurationETag != null) {
             try {
-                changedConfigurations = findConfigurationsForGivenClientVersionAndEtag(client,
+                changedConfigurations = findConfigurationsForGivenClientVersionAndETag(client,
                         version, lastAcquiredConfigurationETag);
             } catch (IncorrectEtagException e) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -73,7 +73,7 @@ public final class ConfigurationController {
         return mapConfigurationsAsResponseEntityConfigurationDto(changedConfigurations);
     }
 
-    private List<Configuration> findConfigurationsForGivenClientVersionAndEtag(
+    private List<Configuration> findConfigurationsForGivenClientVersionAndETag(
             String client,
             String version, String lastAcquiredConfigurationETag)
             throws IncorrectEtagException {
