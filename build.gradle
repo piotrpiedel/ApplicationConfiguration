@@ -18,17 +18,30 @@ repositories {
 	mavenCentral()
 }
 
+ext {
+	orgJsonVersion = '20200518'
+	modelMpperVersion = '2.3.8'
+	swaggerUIVersion = '2.0.2'
+	swaggerCoreVersion = '2.9.2'
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 //	implementation 'org.springframework.boot:spring-boot-starter-security'
 //	implementation 'org.springframework.security:spring-security-test'
-	compile group: 'org.json', name: 'json', version: '20090211'
+
+	compile group: 'org.json', name: 'json', version: "${orgJsonVersion}"
+	compile group: 'org.modelmapper', name: 'modelmapper', version: "${modelMpperVersion}"
+	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: "${swaggerUIVersion}"
+	compile group: 'io.springfox', name: 'springfox-swagger2', version: "${swaggerCoreVersion}"
+
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	compile group: 'org.modelmapper', name: 'modelmapper', version: '2.3.7'
 	runtimeOnly 'com.h2database:h2'
+
+
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
