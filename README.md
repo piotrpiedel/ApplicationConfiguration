@@ -24,6 +24,6 @@ Libraries used in project:
 
 # Documentation
 API documentation is available under /swagger-ui.html. <br>
-Example when application is running at localhost, documentation is in:
+Example when application is running at localhost, documentation is at:
 http://localhost:8080/swagger-ui.html
 
