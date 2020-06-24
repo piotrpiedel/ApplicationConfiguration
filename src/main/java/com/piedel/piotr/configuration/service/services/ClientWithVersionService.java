@@ -26,14 +26,14 @@ public class ClientWithVersionService {
 
         return clientVersion
                 .orElseGet(
-                        () -> addClientWithVersion(ClientVersion.builder()
+                        () -> saveClientWithVersion(ClientVersion.builder()
                                 .client(client)
                                 .version(version)
                                 .build())
                 );
     }
 
-    public ClientVersion addClientWithVersion(ClientVersion clientVersion) {
+    public ClientVersion saveClientWithVersion(ClientVersion clientVersion) {
         return clientWithVersionRepository.save(clientVersion);
     }
 }

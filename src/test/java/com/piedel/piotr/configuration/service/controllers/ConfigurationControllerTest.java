@@ -1,7 +1,7 @@
 package com.piedel.piotr.configuration.service.controllers;
 
 import com.piedel.piotr.configuration.service.dto.ConfigurationDtoMapper;
-import com.piedel.piotr.configuration.service.dto.ConfigurationToJsonObjectsMapper;
+import com.piedel.piotr.configuration.service.dto.ConfigurationToResponseMapper;
 import com.piedel.piotr.configuration.service.exceptions.IncorrectEtagException;
 import com.piedel.piotr.configuration.service.model.Configuration;
 import com.piedel.piotr.configuration.service.services.ClientWithVersionService;
@@ -16,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -45,6 +46,7 @@ class ConfigurationControllerTest {
     ClientWithVersionService clientWithVersionService;
 
     @Test
+    @WithMockUser(roles = "USER")
     void getConfigurations_WhenNoConfigurationForClient_ReturnNotModified() throws Exception {
         //given
         String getConfigurationEndpoint = createGetConfigurationEndpoint("android", "231");
@@ -64,6 +66,7 @@ class ConfigurationControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "USER")
     void getConfigurations_WhenIfNoneMatchHeaderEmpty_ReturnAllConfigurationsWithEtagFromLastConfig()
             throws Exception {
         //given
@@ -89,6 +92,7 @@ class ConfigurationControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "USER")
     void getConfigurations_WhenClientNotFound_ReturnEmptyList() throws Exception {
         //given
         String getConfigurationEndpoint = createGetConfigurationEndpoint("ios", "289");
@@ -107,6 +111,7 @@ class ConfigurationControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void getConfigurations_WhenIncorrectEtagFormat_ThrowIncorrectEtagException() throws Exception {
         //given
         String getConfigurationEndpoint = createGetConfigurationEndpoint("windows", "10");
@@ -126,46 +131,6 @@ class ConfigurationControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // TODO: żeby to przetestować trzeba to zrobić jakoś inaczej
-    // teraz zwraca mi po prostu 5 konfiguracji, pomime podanego if-none-match
-    // poniewaz tak zamokowałem configurationservice to tak mi to zwroci;
-    // zeby to prawdziwie przetestowac to trzeba przetestowac service z prawdziwa
-    // baza jak to wlasciwie dziala
-    // tzn musi wstac baza w h2 oraz musi sobie selecta utworzyc ze after given etag select coingurations
-    @Test
-    void getConfigurations_WhenIfNoneMatchHeaderEtagIsGiven_ReturnLatestUpdatedConfigurationDistinctByKey()
-            throws Exception {
-        //given
-        String getConfigurationEndpoint = createGetConfigurationEndpoint("windows", "10");
-        List<Configuration> configurations = ConfigurationsProvider
-                .getFiveConfigurations_TwoAdsEndpoint_TwoBackgroundColors_OneFontColor();
-
-        when(configurationService
-                .findAllChangedConfigurationsSinceGivenAcquisition(
-                        Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
-                .thenReturn(configurations);
-
-        long firstConfigurationEtagFromList = configurations
-                .get(0)
-                .getCreationDateTimeAsTimestamp();
-
-        //when
-        ResultActions resultActions = mockMvc
-                .perform(get(getConfigurationEndpoint)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.IF_NONE_MATCH, firstConfigurationEtagFromList));
-
-        //then
-        String value = getLastChangedConfigurationEtagValue(configurations);
-
-        resultActions
-                .andExpect(status().isOk())
-                .andExpect(header().string("ETag", value))
-                .andExpect(jsonPath("$.ads_endpoint").value("/devads_updated"))
-                .andExpect(jsonPath("$.background_color").value("#005"))
-                .andExpect(jsonPath("$.font_color").value("#324"));
-    }
-
     private String getLastChangedConfigurationEtagValue(List<Configuration> configurations) {
         Configuration lastChangedConfiguration = getLastChangedConfigurationFromList(
                 configurations);
@@ -176,10 +141,6 @@ class ConfigurationControllerTest {
 
     private Configuration getLastChangedConfigurationFromList(List<Configuration> configurations) {
         return configurations.get(configurations.size() - 1);
-    }
-
-    @Test
-    void addConfiguration() {
     }
 
     @TestConfiguration
@@ -201,8 +162,8 @@ class ConfigurationControllerTest {
         }
 
         @Bean
-        ConfigurationToJsonObjectsMapper configurationToJsonObjectsMapper() {
-            return new ConfigurationToJsonObjectsMapper();
+        ConfigurationToResponseMapper configurationToJsonObjectsMapper() {
+            return new ConfigurationToResponseMapper();
         }
     }
 }

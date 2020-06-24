@@ -2,7 +2,7 @@ package com.piedel.piotr.configuration.service.controllers;
 
 import com.piedel.piotr.configuration.service.dto.ConfigurationDto;
 import com.piedel.piotr.configuration.service.dto.ConfigurationDtoMapper;
-import com.piedel.piotr.configuration.service.dto.ConfigurationToJsonObjectsMapper;
+import com.piedel.piotr.configuration.service.dto.ConfigurationToResponseMapper;
 import com.piedel.piotr.configuration.service.exceptions.IncorrectEtagException;
 import com.piedel.piotr.configuration.service.model.ClientVersion;
 import com.piedel.piotr.configuration.service.model.Configuration;
@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-//import org.springframework.security.access.prepost.PreAuthorize;
-
 @RestController
 @RequestMapping("/config")
 public final class ConfigurationController {
@@ -32,21 +30,20 @@ public final class ConfigurationController {
     private final ConfigurationService configurationService;
     private final ClientWithVersionService clientWithVersionService;
     private final ConfigurationDtoMapper configurationDtoMapper;
-    private final ConfigurationToJsonObjectsMapper configurationToJsonObjectsMapper;
+    private final ConfigurationToResponseMapper configurationToResponseMapper;
 
     public ConfigurationController(
             ConfigurationService configurationService,
             ClientWithVersionService clientWithVersionService,
             ConfigurationDtoMapper configurationDtoMapper,
-            ConfigurationToJsonObjectsMapper configurationToJsonObjectsMapper) {
+            ConfigurationToResponseMapper configurationToResponseMapper) {
 
         this.configurationService = configurationService;
         this.clientWithVersionService = clientWithVersionService;
         this.configurationDtoMapper = configurationDtoMapper;
-        this.configurationToJsonObjectsMapper = configurationToJsonObjectsMapper;
+        this.configurationToResponseMapper = configurationToResponseMapper;
     }
 
-    //    @PreAuthorize(value = "hasRole('user') or hasRole('admin')")
     @GetMapping("/{client}/{version}")
     public ResponseEntity<String> getConfigurations(
             @PathVariable String client,
@@ -93,27 +90,26 @@ public final class ConfigurationController {
     }
 
     private ResponseEntity<String> mapConfigurationsAsResponseEntityConfigurationDto(
-            List<Configuration> changedConfigurations) throws JSONException {
+            List<Configuration> changedConfigurations) {
 
         Configuration lastAcquiredConfiguration = getLastAcquiredConfiguration(
                 changedConfigurations);
 
-        JSONObject response = configurationToJsonObjectsMapper
-                .asKeyValuesPropertiesJsonObject(changedConfigurations);
+        JSONObject response = configurationToResponseMapper
+                .asJsonObjectProperties(changedConfigurations);
         return ResponseEntity
                 .ok()
                 .eTag(Long.toString(lastAcquiredConfiguration.getCreationDateTimeAsTimestamp()))
                 .body(response.toString());
     }
 
-    //    @PreAuthorize(value = "hasRole('admin')")
     @PostMapping("")
     public ResponseEntity<Object> addConfiguration(@RequestBody ConfigurationDto configurationDto) {
         ClientVersion clientVersion = clientWithVersionService
                 .findOrCreate(configurationDto.getClient(), configurationDto.getVersion());
 
         Configuration configurationToSave = configurationDtoMapper
-                .convertToEntity(configurationDto, clientVersion);
+                .asEntity(configurationDto, clientVersion);
 
         configurationService.saveConfiguration(configurationToSave);
         return ResponseEntity.status(HttpStatus.CREATED).build();

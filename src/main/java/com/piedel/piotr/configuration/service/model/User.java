@@ -1,6 +1,7 @@
 package com.piedel.piotr.configuration.service.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ import javax.persistence.ManyToOne;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@Builder
 public class User {
 
     @Id
@@ -29,4 +31,8 @@ public class User {
 
     @ManyToOne
     private Role role;
+
+    public String getRole() {
+        return role.getName();
+    }
 }
