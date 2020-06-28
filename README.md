@@ -16,12 +16,14 @@ User can use ETag value in request to get configurations changed after given ETa
 Application is written using Java 8.
 Libraries used in project:
 - [Spring Boot 2](https://spring.io/projects/spring-boot)
-- [Hiberante 5 + JPA](https://junit.org/junit5/)
+- [Spring security](https://spring.io/projects/spring-security)
+- [Hiberante 5 + JPA](https://hibernate.org/orm/documentation/5.0)
 - [Lombok](https://github.com/rzwitserloot/lombok)
-- [JUnit 5](https://junit.org/junit5/)
-- [Mockito 3 ](https://junit.org/junit5/)
-- [Gradle](https://gradle.org/)
-
+- [JUnit 5](https://junit.org/junit5)
+- [Mockito 3 ](https://site.mockito.org)
+- [Gradle](https://gradle.org)
+- [H2 Database](https://www.h2database.com)
+- [Swagger 2](https://swagger.io/docs/specification/2-0/basic-structure)
 # Documentation
 API documentation is available under /swagger-ui.html. <br>
 Example when application is running at localhost, documentation is at:
